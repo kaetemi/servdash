@@ -73,7 +73,10 @@ namespace ServDash
 
 			try
 			{
-				ProcessStartInfo psi = new ProcessStartInfo(LaunchCmd, LaunchArgs);
+				string cmd = LaunchCmd;
+				if (!string.IsNullOrEmpty(WorkingDirectory))
+					cmd = System.IO.Path.Combine(WorkingDirectory, cmd);
+				ProcessStartInfo psi = new ProcessStartInfo(cmd, LaunchArgs);
 				if (!string.IsNullOrEmpty(WorkingDirectory))
 					psi.WorkingDirectory = WorkingDirectory;
 				captureProcess(Process.Start(psi));

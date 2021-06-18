@@ -35,7 +35,6 @@ namespace ServDash
 		Process process;
 
 		public event Action<TerminalHost> ProcessLaunched;
-		public event Action<TerminalHost> ProcessReady;
 		public event Action<TerminalHost> ProcessStopping;
 		public event Action<TerminalHost> ProcessStopped;
 
@@ -56,7 +55,10 @@ namespace ServDash
 
 			try
 			{
-				ProcessStartInfo psi = new ProcessStartInfo(LaunchCmd, LaunchArgs);
+				string cmd = LaunchCmd;
+				if (!string.IsNullOrEmpty(WorkingDirectory))
+					cmd = System.IO.Path.Combine(WorkingDirectory, cmd);
+				ProcessStartInfo psi = new ProcessStartInfo(cmd, LaunchArgs);
 				psi.RedirectStandardError = true;
 				psi.RedirectStandardOutput = true;
 				psi.CreateNoWindow = true;
@@ -104,10 +106,14 @@ namespace ServDash
 
 			if (!string.IsNullOrEmpty(ShutdownCmd))
 			{
-				ProcessStartInfo psi = new ProcessStartInfo(ShutdownCmd, ShutdownArgs);
+				string cmd = ShutdownCmd;
+				if (!string.IsNullOrEmpty(WorkingDirectory))
+					cmd = System.IO.Path.Combine(WorkingDirectory, cmd);
+				ProcessStartInfo psi = new ProcessStartInfo(cmd, ShutdownArgs);
 				psi.RedirectStandardError = true;
 				psi.RedirectStandardOutput = true;
 				psi.CreateNoWindow = true;
+				psi.UseShellExecute = false;
 				if (!string.IsNullOrEmpty(WorkingDirectory))
 					psi.WorkingDirectory = WorkingDirectory;
 				Process ps = Process.Start(psi);
@@ -115,7 +121,7 @@ namespace ServDash
 			}
 			else
 			{
-				process.Close();
+				process.Kill();
 			}
 
 			try
@@ -128,6 +134,16 @@ namespace ServDash
 			catch (Exception ex)
 			{
 				Console.WriteLine(ex);
+			}
+
+			try
+			{
+				if (process.HasExited)
+					processExitedInvoked();
+			} 
+			catch (InvalidOperationException)
+			{
+				processExitedInvoked();
 			}
 		}
 
@@ -142,7 +158,7 @@ namespace ServDash
 		Action<string> writeOutputDelegate;
 		void writeOutput(string data)
 		{
-			output.AppendText(data);
+			output.AppendText(data + "\r\n");
 		}
 
 		private void errorDataReceived(object sender, DataReceivedEventArgs e)
@@ -159,10 +175,10 @@ namespace ServDash
 
 		void captureProcess(Process process)
 		{
+			process.EnableRaisingEvents = true;
 			captureTerminal(process);
 			releaseProcess();
 			this.process = process;
-			process.EnableRaisingEvents = true;
 
 			output.AppendText("\r\n> Process Started\r\n");
 			Refresh();
@@ -230,6 +246,9 @@ namespace ServDash
 
 		private void processExitedInvoked()
 		{
+			if (process == null)
+				return;
+
 			releaseProcess();
 
 			if ((AutoRestart || restartOnce) && !shutdownRequested)
