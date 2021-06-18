@@ -80,6 +80,8 @@ namespace ServDash
 						splitContainer.Panel2.Controls.Add(host);
 						control.Title = host.LaunchCmd;
 					}
+					if (section.ContainsKey("Title"))
+						control.Title = section["Title"];
 					control.Location = new Point(5, splitContainer.Panel1.Controls.Count * (27) + 7 + 2);
 					control.Size = new Size(splitContainer.Panel1.ClientSize.Width - 5, 23);
 					control.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
