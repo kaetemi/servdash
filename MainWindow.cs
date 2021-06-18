@@ -13,7 +13,7 @@ namespace ServDash
 	{
 		string titlePrefix = "Service Dashboard";
 
-		Dictionary<string, ProcessControl> NamedProcesses;
+		Dictionary<string, ProcessControl> NamedProcesses = new Dictionary<string, ProcessControl>();
 
 		public MainWindow()
 		{
@@ -31,11 +31,16 @@ namespace ServDash
 				string filename = args[1];
 				Environment.CurrentDirectory = new System.IO.FileInfo(filename).DirectoryName;
 				Dictionary<string, Dictionary<string, string>> ini = IniReader.Read(filename);
+				if (ini[""].ContainsKey("Title"))
+					titlePrefix = ini[""]["Title"];
+				Text = titlePrefix;
+				string firstName = null;
 				foreach (string name in ini.Keys)
 				{
 					if (name == "")
 						continue;
 
+					firstName = name;
 					Dictionary<string, string> section = ini[name];
 					ProcessControl control = new ProcessControl();
 					if (section.ContainsKey("Terminal") && section["Terminal"] == "1")
@@ -58,6 +63,7 @@ namespace ServDash
 						host.ProcessStopping += terminalStopping;
 						splitContainer.Panel2.Controls.Add(host);
 						control.Title = host.LaunchCmd;
+						host.Visible = false;
 					}
 					else
 					{
@@ -79,16 +85,45 @@ namespace ServDash
 						host.ProcessStopping += processStopping;
 						splitContainer.Panel2.Controls.Add(host);
 						control.Title = host.LaunchCmd;
+						host.Visible = false;
 					}
 					if (section.ContainsKey("Title"))
 						control.Title = section["Title"];
 					control.Location = new Point(5, splitContainer.Panel1.Controls.Count * (27) + 7 + 2);
-					control.Size = new Size(splitContainer.Panel1.ClientSize.Width - 5, 23);
+					control.Size = new Size(splitContainer.Panel1.ClientSize.Width - 5 - 1, 23);
 					control.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 					control.TitleClicked += titleClicked;
 					control.LaunchClicked += launchClicked;
 					control.StopClicked += stopClicked;
 					splitContainer.Panel1.Controls.Add(control);
+					NamedProcesses[name] = control;
+				}
+				if (!string.IsNullOrEmpty(firstName))
+					titleClicked(NamedProcesses[firstName]);
+			}
+		}
+
+		bool autoStarted = false;
+		private void MainWindow_Shown(object sender, EventArgs e)
+		{
+			if (!autoStarted)
+			{
+				autoStarted = true;
+				BeginInvoke(new MethodInvoker(autoStart));
+			}
+		}
+
+		void autoStart()
+		{
+			foreach (Control c in splitContainer.Panel2.Controls)
+			{
+				if (c is ProcessHost)
+				{
+					(c as ProcessHost).Launch();
+				}
+				else if (c is TerminalHost)
+				{
+					(c as TerminalHost).Launch();
 				}
 			}
 		}
@@ -108,7 +143,7 @@ namespace ServDash
 			host.ProcessStopping += terminalStopping;
 			splitContainer.Panel2.Controls.Add(host);
 			control.Location = new Point(5, splitContainer.Panel1.Controls.Count * (27) + 7 + 2);
-			control.Size = new Size(splitContainer.Panel1.ClientSize.Width - 5, 23);
+			control.Size = new Size(splitContainer.Panel1.ClientSize.Width - 5 - 1, 23);
 			control.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 			control.Title = host.LaunchCmd;
 			control.TitleClicked += titleClicked;
@@ -134,7 +169,7 @@ namespace ServDash
 			host.ProcessStopping += processStopping;
 			splitContainer.Panel2.Controls.Add(host);
 			control.Location = new Point(5, splitContainer.Panel1.Controls.Count * (27) + 7 + 2);
-			control.Size = new Size(splitContainer.Panel1.ClientSize.Width - 5, 23);
+			control.Size = new Size(splitContainer.Panel1.ClientSize.Width - 5 - 1, 23);
 			control.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 			control.Title = host.LaunchCmd;
 			control.TitleClicked += titleClicked;
@@ -162,7 +197,11 @@ namespace ServDash
 			foreach (Control c in splitContainer.Panel2.Controls)
 				if (c != host)
 					c.Visible = false;
+			foreach (Control c in splitContainer.Panel1.Controls)
+				if (c != control && c is ProcessControl)
+					c.BackColor = SystemColors.Control;
 			host.Visible = true;
+			control.BackColor = SystemColors.Highlight;
 			if (host is ProcessHost)
 			{
 				(host as ProcessHost).Launch();
@@ -177,6 +216,10 @@ namespace ServDash
 		{
 			Control host = (Control)control.ProcessObject;
 			host.Visible = true;
+			control.BackColor = SystemColors.Highlight;
+			foreach (Control c in splitContainer.Panel1.Controls)
+				if (c != control && c is ProcessControl)
+					c.BackColor = SystemColors.Control;
 			foreach (Control c in splitContainer.Panel2.Controls)
 				if (c != host)
 					c.Visible = false;

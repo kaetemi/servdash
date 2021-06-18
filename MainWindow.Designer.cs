@@ -30,8 +30,8 @@ namespace ServDash
 		private void InitializeComponent()
 		{
 			this.splitContainer = new System.Windows.Forms.SplitContainer();
-			this.launchAll = new System.Windows.Forms.Button();
 			this.shutdownAll = new System.Windows.Forms.Button();
+			this.launchAll = new System.Windows.Forms.Button();
 			this.splitContainer.Panel1.SuspendLayout();
 			this.splitContainer.SuspendLayout();
 			this.SuspendLayout();
@@ -57,21 +57,6 @@ namespace ServDash
 			this.splitContainer.SplitterDistance = 180;
 			this.splitContainer.TabIndex = 0;
 			// 
-			// launchAll
-			// 
-			this.launchAll.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.launchAll.Image = global::ServDash.Properties.Resources.control;
-			this.launchAll.Location = new System.Drawing.Point(7, 7);
-			this.launchAll.Name = "launchAll";
-			this.launchAll.Size = new System.Drawing.Size(170, 23);
-			this.launchAll.TabIndex = 0;
-			this.launchAll.Text = "Launch All";
-			this.launchAll.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.launchAll.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			this.launchAll.UseVisualStyleBackColor = true;
-			this.launchAll.Click += new System.EventHandler(this.launchAll_Click);
-			// 
 			// shutdownAll
 			// 
 			this.shutdownAll.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -87,6 +72,21 @@ namespace ServDash
 			this.shutdownAll.UseVisualStyleBackColor = true;
 			this.shutdownAll.Click += new System.EventHandler(this.shutdownAll_Click);
 			// 
+			// launchAll
+			// 
+			this.launchAll.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.launchAll.Image = global::ServDash.Properties.Resources.control;
+			this.launchAll.Location = new System.Drawing.Point(7, 7);
+			this.launchAll.Name = "launchAll";
+			this.launchAll.Size = new System.Drawing.Size(170, 23);
+			this.launchAll.TabIndex = 0;
+			this.launchAll.Text = "Launch All";
+			this.launchAll.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.launchAll.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+			this.launchAll.UseVisualStyleBackColor = true;
+			this.launchAll.Click += new System.EventHandler(this.launchAll_Click);
+			// 
 			// MainWindow
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -96,6 +96,7 @@ namespace ServDash
 			this.Name = "MainWindow";
 			this.Text = "Service Dashboard";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainWindow_FormClosing);
+			this.Shown += new System.EventHandler(this.MainWindow_Shown);
 			this.splitContainer.Panel1.ResumeLayout(false);
 			this.splitContainer.ResumeLayout(false);
 			this.ResumeLayout(false);

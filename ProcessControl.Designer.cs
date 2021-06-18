@@ -41,7 +41,7 @@ namespace ServDash
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.titleButton.Location = new System.Drawing.Point(54, 0);
 			this.titleButton.Name = "titleButton";
-			this.titleButton.Size = new System.Drawing.Size(93, 23);
+			this.titleButton.Size = new System.Drawing.Size(94, 23);
 			this.titleButton.TabIndex = 0;
 			this.titleButton.Text = "...";
 			this.titleButton.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
