@@ -107,7 +107,7 @@ namespace ServDash
 			if (!string.IsNullOrEmpty(ShutdownCmd))
 			{
 				string cmd = ShutdownCmd;
-				if (!string.IsNullOrEmpty(WorkingDirectory))
+				if (!string.IsNullOrEmpty(WorkingDirectory) && cmd.StartsWith("."))
 					cmd = System.IO.Path.Combine(WorkingDirectory, cmd);
 				ProcessStartInfo psi = new ProcessStartInfo(cmd, ShutdownArgs);
 				psi.RedirectStandardError = true;
