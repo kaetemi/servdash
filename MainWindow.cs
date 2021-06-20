@@ -112,14 +112,23 @@ namespace ServDash
 			autoStart();
 		}
 
+		bool autoStarting = false;
+		bool autoStartLoop = false;
+
 		void autoStart()
 		{
 			if (closingWindow)
 				return;
 
-			foreach (string name in LaunchProcesses)
+			if (autoStarting)
 			{
-				if (NamedProcesses[name].State == ProcessState.Launched)
+				autoStartLoop = true;
+				return;
+			}
+
+			foreach (ProcessControl control in NamedProcesses.Values)
+			{
+				if (control.State == ProcessState.Launched)
 					return; // Only launch one at a time
 			}
 
@@ -131,8 +140,21 @@ namespace ServDash
 				if (control.State == ProcessState.Stopped
 					|| control.State == ProcessState.New)
 				{
-					launchClicked(control);
-					LaunchProcesses.Remove(name);
+					autoStarting = true;
+					try
+					{
+						launchClicked(control);
+						LaunchProcesses.Remove(name);
+					}
+					finally
+					{
+						autoStarting = false;
+						if (autoStartLoop)
+						{
+							autoStartLoop = false;
+							autoStart();
+						}
+					}
 					return;
 				}
 			}
