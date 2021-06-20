@@ -302,22 +302,25 @@ namespace ServDash
 		{
 			try
 			{
-				if (process != null && mainWindowHandle == IntPtr.Zero && hwnd == process.MainWindowHandle)
+				if (process != null && mainWindowHandle == IntPtr.Zero)
 				{
 					if (shutdownRequested)
 					{
-						process.CloseMainWindow();
+						Win32.PostMessage(hwnd, Win32.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
 						return;
 					}
-					captureMainWindow();
-					if (ProcessCaptured != null)
+					if (hwnd == process.MainWindowHandle)
 					{
-						ProcessCaptured(this);
-					}
-					if (string.IsNullOrEmpty(ReadyPattern) && ProcessReady != null)
-					{
-						readyTriggered = true;
-						ProcessReady(this);
+						captureMainWindow();
+						if (ProcessCaptured != null)
+						{
+							ProcessCaptured(this);
+						}
+						if (string.IsNullOrEmpty(ReadyPattern) && ProcessReady != null)
+						{
+							readyTriggered = true;
+							ProcessReady(this);
+						}
 					}
 				}
 			}

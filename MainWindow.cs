@@ -126,6 +126,7 @@ namespace ServDash
 				return;
 			}
 
+			// TODO: If launch dependencies are specified, allow multiple launches at once
 			foreach (ProcessControl control in NamedProcesses.Values)
 			{
 				if (control.State == ProcessState.Launched)
@@ -135,7 +136,6 @@ namespace ServDash
 			foreach (string name in LaunchProcesses)
 			{
 				// TODO: Launch dependencies
-
 				ProcessControl control = NamedProcesses[name];
 				if (control.State == ProcessState.Stopped
 					|| control.State == ProcessState.New)
@@ -410,6 +410,7 @@ namespace ServDash
 
 		private void shutdownAll_Click(object sender, EventArgs e)
 		{
+			LaunchProcesses.Clear();
 			foreach (Control c in splitContainer.Panel2.Controls)
 			{
 				if (c is ProcessHost)

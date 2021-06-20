@@ -388,5 +388,11 @@ namespace ServDash
 
 		[DllImport("user32.dll")]
 		public static extern bool UnhookWinEvent(IntPtr hWinEventHook);
+
+		public static uint WM_CLOSE = 0x10;
+
+		[return: MarshalAs(UnmanagedType.Bool)]
+		[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+		public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 	}
 }
