@@ -17,6 +17,8 @@ namespace ServDash
 			Dock = DockStyle.Fill;
 			InitializeComponent();
 			processObjectNameChangeDelegate = new Win32.WinEventDelegate(processObjectNameChange);
+			processObjectShowDelegate = new Win32.WinEventDelegate(processObjectShow);
+			processObjectDestroyDelegate = new Win32.WinEventDelegate(processObjectDestroy);
 		}
 
 		public object ProcessObject { get; set; }
@@ -50,8 +52,11 @@ namespace ServDash
 		Process process;
 		IntPtr mainWindowHandle;
 		IntPtr processNameChangeHook;
+		IntPtr processShowHook;
+		IntPtr processDestroyHook;
 
 		public event Action<ProcessHost> ProcessLaunched;
+		public event Action<ProcessHost> ProcessCaptured;
 		public event Action<ProcessHost> ProcessReady;
 		public event Action<ProcessHost> ProcessStopping;
 		public event Action<ProcessHost> ProcessStopped;
@@ -118,7 +123,10 @@ namespace ServDash
 
 			shutdownRequested = true;
 
-			process.CloseMainWindow();
+			if (process.MainWindowHandle != IntPtr.Zero)
+			{
+				process.CloseMainWindow();
+			}
 
 			try
 			{
@@ -146,31 +154,42 @@ namespace ServDash
 
 			try
 			{
+				processDestroyHook = Win32.SetWinEventHook(Win32.WinEvents.EVENT_OBJECT_DESTROY, Win32.WinEvents.EVENT_OBJECT_DESTROY,
+					IntPtr.Zero, processObjectDestroyDelegate,
+					(uint)process.Id, 0, Win32.WinEventFlags.WINEVENT_OUTOFCONTEXT);
+
+				processShowHook = Win32.SetWinEventHook(Win32.WinEvents.EVENT_OBJECT_SHOW, Win32.WinEvents.EVENT_OBJECT_SHOW,
+					IntPtr.Zero, processObjectShowDelegate,
+					(uint)process.Id, 0, Win32.WinEventFlags.WINEVENT_OUTOFCONTEXT);
+
+				/*
 				while (process.MainWindowHandle == IntPtr.Zero)
 				{
 					process.WaitForInputIdle();
 					process.Refresh();
 				}
+				*/
+
 				try
 				{
 					if (ProcessLaunched != null)
 					{
 						ProcessLaunched(this);
 					}
-					if (string.IsNullOrEmpty(ReadyPattern) && ProcessReady != null)
-					{
-						readyTriggered = true;
-						ProcessReady(this);
-					}
 				}
 				catch (Exception ex)
 				{
 					Console.WriteLine(ex.ToString());
 				}
+
 				processNameChangeHook = Win32.SetWinEventHook(Win32.WinEvents.EVENT_OBJECT_NAMECHANGE, Win32.WinEvents.EVENT_OBJECT_NAMECHANGE, 
 					IntPtr.Zero, processObjectNameChangeDelegate, 
 					(uint)process.Id, 0, Win32.WinEventFlags.WINEVENT_OUTOFCONTEXT);
+
+				/*
 				captureMainWindow();
+				*/
+
 				if (process.HasExited)
 					processExitedInvoked();
 				else
@@ -237,6 +256,8 @@ namespace ServDash
 		public delegate void TitleChangedDelegate(ProcessHost host, string title);
 		public event TitleChangedDelegate ProcessTitleChanged;
 		Win32.WinEventDelegate processObjectNameChangeDelegate;
+		Win32.WinEventDelegate processObjectShowDelegate;
+		Win32.WinEventDelegate processObjectDestroyDelegate;
 
 		void titleChanged(string title)
 		{
@@ -268,6 +289,55 @@ namespace ServDash
 					{
 						titleChanged(title);
 					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.ToString());
+			}
+		}
+
+		void processObjectShow(IntPtr hWinEventHook, uint eventType,
+			IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
+		{
+			try
+			{
+				if (process != null && mainWindowHandle == IntPtr.Zero && hwnd == process.MainWindowHandle)
+				{
+					if (shutdownRequested)
+					{
+						process.CloseMainWindow();
+						return;
+					}
+					captureMainWindow();
+					if (ProcessCaptured != null)
+					{
+						ProcessCaptured(this);
+					}
+					if (string.IsNullOrEmpty(ReadyPattern) && ProcessReady != null)
+					{
+						readyTriggered = true;
+						ProcessReady(this);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.ToString());
+			}
+		}
+
+		void processObjectDestroy(IntPtr hWinEventHook, uint eventType,
+			IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
+		{
+			try
+			{
+				if (hwnd == mainWindowHandle)
+				{
+					SetStyle(ControlStyles.Opaque | ControlStyles.AllPaintingInWmPaint, false);
+					statusLabel.Text = Text;
+					statusLabel.Visible = true;
+					mainWindowHandle = IntPtr.Zero;
 				}
 			}
 			catch (Exception ex)
@@ -332,14 +402,20 @@ namespace ServDash
 
 		private void releaseMainWindow()
 		{
-			if (mainWindowHandle == IntPtr.Zero)
-				return;
+			if (processShowHook != IntPtr.Zero)
+			{
+				Win32.UnhookWinEvent(processShowHook);
+				processShowHook = IntPtr.Zero;
+			}
 
 			if (processNameChangeHook != IntPtr.Zero)
 			{
 				Win32.UnhookWinEvent(processNameChangeHook);
 				processNameChangeHook = IntPtr.Zero;
 			}
+
+			if (mainWindowHandle == IntPtr.Zero)
+				return;
 
 			IntPtr handle = mainWindowHandle;
 			mainWindowHandle = IntPtr.Zero;

@@ -14,6 +14,7 @@ namespace ServDash
 		string titlePrefix = "Service Dashboard";
 
 		Dictionary<string, ProcessControl> NamedProcesses = new Dictionary<string, ProcessControl>();
+		LinkedList<string> LaunchProcesses = new LinkedList<string>();
 
 		public MainWindow()
 		{
@@ -80,6 +81,7 @@ namespace ServDash
 							host.ReadyPattern = section["ReadyPattern"];
 						host.ProcessTitleChanged += processTitleChanged;
 						host.ProcessLaunched += processLaunched;
+						host.ProcessCaptured += processCaptured;
 						host.ProcessReady += processReady;
 						host.ProcessStopped += processStopped;
 						host.ProcessStopping += processStopping;
@@ -97,24 +99,29 @@ namespace ServDash
 					control.StopClicked += stopClicked;
 					splitContainer.Panel1.Controls.Add(control);
 					NamedProcesses[name] = control;
+					LaunchProcesses.AddLast(name);
 				}
 				if (!string.IsNullOrEmpty(firstName))
 					titleClicked(NamedProcesses[firstName]);
 			}
 		}
 
-		bool autoStarted = false;
 		private void MainWindow_Shown(object sender, EventArgs e)
 		{
+			/*
+			return;
 			if (!autoStarted)
 			{
 				autoStarted = true;
 				BeginInvoke(new MethodInvoker(autoStart));
 			}
+			*/
+			autoStart();
 		}
 
 		void autoStart()
 		{
+			/*
 			foreach (Control c in splitContainer.Panel2.Controls)
 			{
 				if (c is ProcessHost)
@@ -126,6 +133,7 @@ namespace ServDash
 					(c as TerminalHost).Launch();
 				}
 			}
+			*/
 		}
 
 		void test2()
@@ -164,6 +172,7 @@ namespace ServDash
 			host.ReadyPattern = @"^[^Untitled].+ Note";
 			host.ProcessTitleChanged += processTitleChanged;
 			host.ProcessLaunched += processLaunched;
+			host.ProcessCaptured += processCaptured;
 			host.ProcessReady +=  processReady;
 			host.ProcessStopped += processStopped;
 			host.ProcessStopping += processStopping;
@@ -243,6 +252,7 @@ namespace ServDash
 		{
 			ProcessControl control = (ProcessControl)host.ProcessObject;
 			control.SetLaunched();
+			control.SetCaptured();
 			control.SetReady();
 		}
 
@@ -287,6 +297,12 @@ namespace ServDash
 		{
 			ProcessControl control = (ProcessControl)host.ProcessObject;
 			control.SetReady();
+		}
+
+		private void processCaptured(ProcessHost host)
+		{
+			ProcessControl control = (ProcessControl)host.ProcessObject;
+			control.SetCaptured();
 		}
 
 		private void processLaunched(ProcessHost host)

@@ -8,11 +8,22 @@ using System.Windows.Forms;
 
 namespace ServDash
 {
+	public enum ProcessState
+	{
+		New,
+		Launched,
+		Captured,
+		Ready,
+		Stopping,
+		Stopped
+	}
+
 	public partial class ProcessControl : UserControl
 	{
 		public ProcessControl()
 		{
 			InitializeComponent();
+			State = ProcessState.New;
 		}
 
 		public object ProcessObject { get; set; }
@@ -25,10 +36,21 @@ namespace ServDash
 
 		public string Title { get { return titleButton.Text; } set { titleButton.Text = value; } }
 
+		public ProcessState State { get; set; }
+
 		public void SetLaunched()
 		{
 			startButton.Image = Properties.Resources.control_stop_square;
+			status.Image = Properties.Resources.status_orange;
+			State = ProcessState.Launched;
+			started = true;
+		}
+
+		public void SetCaptured()
+		{
+			startButton.Image = Properties.Resources.control_stop_square;
 			status.Image = Properties.Resources.status_away;
+			State = ProcessState.Captured;
 			started = true;
 		}
 
@@ -36,6 +58,7 @@ namespace ServDash
 		{
 			startButton.Image = Properties.Resources.control_stop_square;
 			status.Image = Properties.Resources.status;
+			State = ProcessState.Ready;
 			started = true;
 		}
 
@@ -43,6 +66,7 @@ namespace ServDash
 		{
 			startButton.Image = Properties.Resources.control;
 			status.Image = Properties.Resources.status_busy;
+			State = ProcessState.Stopped;
 			started = false;
 		}
 
@@ -50,6 +74,7 @@ namespace ServDash
 		{
 			startButton.Image = Properties.Resources.control_stop_square;
 			status.Image = Properties.Resources.status_blue;
+			State = ProcessState.Stopping;
 			started = true;
 		}
 

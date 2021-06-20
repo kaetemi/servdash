@@ -105,6 +105,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="game-monitor.ico" />
+    <None Include="Resources\status-orange.png" />
+    <None Include="Resources\status-magenta.png" />
     <None Include="Resources\status-blue.png" />
     <None Include="Resources\status-cyan.png" />
     <None Include="Resources\status-offline.png" />

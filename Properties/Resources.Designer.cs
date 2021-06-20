@@ -133,9 +133,29 @@ namespace ServDash.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap status_magenta {
+            get {
+                object obj = ResourceManager.GetObject("status-magenta", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap status_offline {
             get {
                 object obj = ResourceManager.GetObject("status-offline", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap status_orange {
+            get {
+                object obj = ResourceManager.GetObject("status-orange", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
