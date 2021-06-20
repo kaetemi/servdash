@@ -25,6 +25,7 @@ namespace ServDash
 			test();
 			test();
 			test2();
+			return;
 			*/
 			string[] args = Environment.GetCommandLineArgs();
 			if (args.Length > 1)
@@ -108,32 +109,33 @@ namespace ServDash
 
 		private void MainWindow_Shown(object sender, EventArgs e)
 		{
-			/*
-			return;
-			if (!autoStarted)
-			{
-				autoStarted = true;
-				BeginInvoke(new MethodInvoker(autoStart));
-			}
-			*/
 			autoStart();
 		}
 
 		void autoStart()
 		{
-			/*
-			foreach (Control c in splitContainer.Panel2.Controls)
+			if (closingWindow)
+				return;
+
+			foreach (string name in LaunchProcesses)
 			{
-				if (c is ProcessHost)
+				if (NamedProcesses[name].State == ProcessState.Launched)
+					return; // Only launch one at a time
+			}
+
+			foreach (string name in LaunchProcesses)
+			{
+				// TODO: Launch dependencies
+
+				ProcessControl control = NamedProcesses[name];
+				if (control.State == ProcessState.Stopped
+					|| control.State == ProcessState.New)
 				{
-					(c as ProcessHost).Launch();
-				}
-				else if (c is TerminalHost)
-				{
-					(c as TerminalHost).Launch();
+					launchClicked(control);
+					LaunchProcesses.Remove(name);
+					return;
 				}
 			}
-			*/
 		}
 
 		void test2()
@@ -246,6 +248,7 @@ namespace ServDash
 		{
 			ProcessControl control = (ProcessControl)host.ProcessObject;
 			control.SetStopping();
+			autoStart();
 		}
 
 		private void terminalLaunched(TerminalHost host)
@@ -254,6 +257,7 @@ namespace ServDash
 			control.SetLaunched();
 			control.SetCaptured();
 			control.SetReady();
+			autoStart();
 		}
 
 		private void processStopped(ProcessHost host)
@@ -285,30 +289,38 @@ namespace ServDash
 				closingWindow = false;
 				Close();
 			}
+			else
+			{
+				autoStart();
+			}
 		}
 
 		private void processStopping(ProcessHost host)
 		{
 			ProcessControl control = (ProcessControl)host.ProcessObject;
 			control.SetStopping();
+			autoStart();
 		}
 
 		private void processReady(ProcessHost host)
 		{
 			ProcessControl control = (ProcessControl)host.ProcessObject;
 			control.SetReady();
+			autoStart();
 		}
 
 		private void processCaptured(ProcessHost host)
 		{
 			ProcessControl control = (ProcessControl)host.ProcessObject;
 			control.SetCaptured();
+			autoStart();
 		}
 
 		private void processLaunched(ProcessHost host)
 		{
 			ProcessControl control = (ProcessControl)host.ProcessObject;
 			control.SetLaunched();
+			autoStart();
 		}
 
 		private void processTitleChanged(ProcessHost host, string title)
@@ -349,15 +361,26 @@ namespace ServDash
 
 		private void launchAll_Click(object sender, EventArgs e)
 		{
-			foreach (Control c in splitContainer.Panel2.Controls)
+			if (NamedProcesses.Count > 0)
 			{
-				if (c is ProcessHost)
+				LaunchProcesses.Clear();
+				foreach (string name in NamedProcesses.Keys)
 				{
-					(c as ProcessHost).Launch();
+					LaunchProcesses.AddLast(name);
 				}
-				else if (c is TerminalHost)
+			}
+			else
+			{
+				foreach (Control c in splitContainer.Panel2.Controls)
 				{
-					(c as TerminalHost).Launch();
+					if (c is ProcessHost)
+					{
+						(c as ProcessHost).Launch();
+					}
+					else if (c is TerminalHost)
+					{
+						(c as TerminalHost).Launch();
+					}
 				}
 			}
 		}
