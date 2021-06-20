@@ -368,6 +368,7 @@ namespace ServDash
 				{
 					LaunchProcesses.AddLast(name);
 				}
+				autoStart();
 			}
 			else
 			{
