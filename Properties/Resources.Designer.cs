@@ -103,6 +103,16 @@ namespace ServDash.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap status_blue {
+            get {
+                object obj = ResourceManager.GetObject("status-blue", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap status_busy {
             get {
                 object obj = ResourceManager.GetObject("status-busy", resourceCulture);

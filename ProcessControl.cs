@@ -49,7 +49,7 @@ namespace ServDash
 		public void SetStopping()
 		{
 			startButton.Image = Properties.Resources.control_stop_square;
-			status.Image = Properties.Resources.status_cyan;
+			status.Image = Properties.Resources.status_blue;
 			started = true;
 		}
 
