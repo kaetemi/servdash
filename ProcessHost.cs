@@ -321,6 +321,7 @@ namespace ServDash
 
 			mainWindowOriginalLong = Win32.GetWindowLong(mainWindowHandle, Win32.GWL_STYLE);
 			Win32.SetWindowLong(mainWindowHandle, Win32.GWL_STYLE, mainWindowOriginalLong & ~Win32.WS_BORDER & ~Win32.WS_CAPTION & ~Win32.WS_THICKFRAME & ~Win32.WS_POPUP | Win32.WS_CHILD);
+			// NOTE: ` & ~Win32.WS_POPUP | Win32.WS_CHILD` loses the menu bar of any captured window, but ensures focus works correctly
 
 			mainWindowOriginalParent = Win32.GetParent(mainWindowHandle);
 			Win32.SetParent(mainWindowHandle, Handle);
