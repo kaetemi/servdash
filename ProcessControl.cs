@@ -24,6 +24,7 @@ namespace ServDash
 		{
 			InitializeComponent();
 			State = ProcessState.New;
+			Priority = int.MaxValue;
 		}
 
 		public object ProcessObject { get; set; }
@@ -37,6 +38,8 @@ namespace ServDash
 		public string Title { get { return titleButton.Text; } set { titleButton.Text = value; } }
 
 		public ProcessState State { get; set; }
+
+		public int Priority { get; set; }
 
 		public void SetLaunched()
 		{

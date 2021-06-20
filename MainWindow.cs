@@ -92,6 +92,8 @@ namespace ServDash
 					}
 					if (section.ContainsKey("Title"))
 						control.Title = section["Title"];
+					if (section.ContainsKey("Priority"))
+						control.Priority = int.Parse(section["Priority"]);
 					control.Location = new Point(5, splitContainer.Panel1.Controls.Count * (27) + 7 + 2);
 					control.Size = new Size(splitContainer.Panel1.ClientSize.Width - 5 - 1, 23);
 					control.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -126,19 +128,33 @@ namespace ServDash
 				return;
 			}
 
-			// TODO: If launch dependencies are specified, allow multiple launches at once
 			foreach (ProcessControl control in NamedProcesses.Values)
 			{
-				if (control.State == ProcessState.Launched)
+				if (control.State == ProcessState.Launched && control.Priority == int.MaxValue)
 					return; // Only launch one at a time
+			}
+
+			int lowestPriority = int.MaxValue;
+
+			foreach (ProcessControl control in NamedProcesses.Values)
+			{
+				if ((control.State == ProcessState.Stopped
+					|| control.State == ProcessState.New
+					|| control.State == ProcessState.Launched
+					|| control.State == ProcessState.Captured
+					|| control.State == ProcessState.Stopping)
+					&& (control.Priority < lowestPriority))
+				{
+					lowestPriority = control.Priority;
+				}
 			}
 
 			foreach (string name in LaunchProcesses)
 			{
-				// TODO: Launch dependencies
 				ProcessControl control = NamedProcesses[name];
-				if (control.State == ProcessState.Stopped
+				if ((control.State == ProcessState.Stopped
 					|| control.State == ProcessState.New)
+					&& (control.Priority <= lowestPriority))
 				{
 					autoStarting = true;
 					try
