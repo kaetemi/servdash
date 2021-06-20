@@ -319,11 +319,11 @@ namespace ServDash
 			mainWindowOriginalRect = new Win32.RECT();
 			Win32.GetWindowRect(mainWindowHandle, ref mainWindowOriginalRect);
 
+			mainWindowOriginalLong = Win32.GetWindowLong(mainWindowHandle, Win32.GWL_STYLE);
+			Win32.SetWindowLong(mainWindowHandle, Win32.GWL_STYLE, mainWindowOriginalLong & ~Win32.WS_BORDER & ~Win32.WS_CAPTION & ~Win32.WS_THICKFRAME & ~Win32.WS_POPUP | Win32.WS_CHILD);
+
 			mainWindowOriginalParent = Win32.GetParent(mainWindowHandle);
 			Win32.SetParent(mainWindowHandle, Handle);
-
-			mainWindowOriginalLong = Win32.GetWindowLong(mainWindowHandle, Win32.GWL_STYLE);
-			Win32.SetWindowLong(mainWindowHandle, Win32.GWL_STYLE, mainWindowOriginalLong & ~Win32.WS_BORDER & ~Win32.WS_CAPTION & ~Win32.WS_THICKFRAME); // | Native.WS_CHILD
 
 			Win32.ShowWindow(mainWindowHandle, Win32.SW_SHOWMAXIMIZED);
 			Win32.SetWindowPos(mainWindowHandle, Handle, 0, 0, ClientSize.Width, ClientSize.Height, Win32.SWP_FRAMECHANGED | Win32.SWP_NOZORDER | Win32.SWP_SHOWWINDOW);
