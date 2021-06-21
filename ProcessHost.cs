@@ -384,7 +384,6 @@ namespace ServDash
 		void captureMainWindow()
 		{
 			mainWindowHandle = process.MainWindowHandle;
-			titleChanged(ProcessTitle);
 
 			mainWindowOriginalRect = new Win32.RECT();
 			Win32.GetWindowRect(mainWindowHandle, ref mainWindowOriginalRect);
@@ -408,6 +407,7 @@ namespace ServDash
 				readyTriggered = true;
 				ProcessReady(this);
 			}
+			titleChanged(ProcessTitle);
 		}
 
 		private void releaseMainWindow()
