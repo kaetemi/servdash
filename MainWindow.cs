@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.IO;
 
 namespace ServDash
 {
@@ -45,6 +46,9 @@ namespace ServDash
 					firstName = name;
 					Dictionary<string, string> section = ini[name];
 					ProcessControl control = new ProcessControl();
+					string launchCmd;
+					string workingDirectory = null;
+					bool autoLaunch = true;
 					if (section.ContainsKey("Terminal") && section["Terminal"] == "1")
 					{
 						TerminalHost host = new TerminalHost();
@@ -55,7 +59,10 @@ namespace ServDash
 						if (section.ContainsKey("LaunchArgs"))
 							host.LaunchArgs = section["LaunchArgs"];
 						if (section.ContainsKey("WorkingDirectory"))
+						{
 							host.WorkingDirectory = section["WorkingDirectory"];
+							workingDirectory = host.WorkingDirectory;
+						}
 						if (section.ContainsKey("ShutdownCmd"))
 							host.ShutdownCmd = section["ShutdownCmd"];
 						if (section.ContainsKey("ShutdownArgs"))
@@ -64,7 +71,7 @@ namespace ServDash
 						host.ProcessStopped += terminalStopped;
 						host.ProcessStopping += terminalStopping;
 						splitContainer.Panel2.Controls.Add(host);
-						control.Title = host.LaunchCmd;
+						launchCmd = host.LaunchCmd;
 						host.Visible = false;
 					}
 					else
@@ -77,7 +84,10 @@ namespace ServDash
 						if (section.ContainsKey("LaunchArgs"))
 							host.LaunchArgs = section["LaunchArgs"];
 						if (section.ContainsKey("WorkingDirectory"))
+						{
 							host.WorkingDirectory = section["WorkingDirectory"];
+							workingDirectory = host.WorkingDirectory;
+						}
 						if (section.ContainsKey("ReadyPattern"))
 							host.ReadyPattern = section["ReadyPattern"];
 						host.ProcessTitleChanged += processTitleChanged;
@@ -87,25 +97,101 @@ namespace ServDash
 						host.ProcessStopped += processStopped;
 						host.ProcessStopping += processStopping;
 						splitContainer.Panel2.Controls.Add(host);
-						control.Title = host.LaunchCmd;
+						launchCmd = host.LaunchCmd;
 						host.Visible = false;
 					}
+					control.Title = launchCmd;
+					control.ProcessName = name;
 					if (section.ContainsKey("Title"))
+					{
 						control.Title = section["Title"];
+						control.StaticTitle = true;
+					}
 					if (section.ContainsKey("Priority"))
 						control.Priority = int.Parse(section["Priority"]);
+					if (section.ContainsKey("AutoStart") && section["AutoStart"] == "0")
+						autoLaunch = false;
+					if (section.ContainsKey("LaunchCtrl"))
+					{
+						string[] launchCtrl = section["LaunchCtrl"].Split(new char[] { ',' });
+						string ctrlFile = launchCtrl[0];
+						if (!string.IsNullOrEmpty(workingDirectory))
+							ctrlFile = Path.Combine(workingDirectory, ctrlFile);
+						FileInfo ctrlInfo = new FileInfo(ctrlFile);
+						control.LaunchCtrlFile = ctrlFile;
+						string stateFile = launchCtrl[1];
+						if (!string.IsNullOrEmpty(workingDirectory))
+							stateFile = Path.Combine(workingDirectory, stateFile);
+						FileInfo stateInfo = new FileInfo(stateFile);
+						control.LaunchStateFile = stateFile;
+						control.LaunchCtrlValues[0] = launchCtrl[2];
+						control.LaunchCtrlValues[1] = launchCtrl[3];
+						control.LaunchCtrlValues[2] = launchCtrl[4];
+						control.LaunchCtrlValues[3] = launchCtrl[5];
+						string launchValue;
+						try
+						{
+							if (!ctrlInfo.Exists)
+							{
+								launchValue = autoLaunch ? control.LaunchCtrlValues[0] : control.LaunchCtrlValues[2];
+								File.WriteAllText(ctrlFile, launchValue);
+							}
+							else
+							{
+								launchValue = File.ReadAllText(ctrlFile);
+							}
+							control.LaunchCtrlValue = 3;
+							autoLaunch = (control.GetLaunchCtrlValue(launchValue) == 0);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex);
+						}
+						try
+						{
+							File.WriteAllText(stateFile, control.LaunchCtrlValues[3]);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(ex);
+						}
+						control.LaunchCtrlWatcher = new FileSystemWatcher(ctrlInfo.Directory.FullName, ctrlInfo.Name);
+						control.LaunchCtrlWatcher.Changed += control.LaunchCtrlChanged;
+						control.LaunchCtrlWatcher.EnableRaisingEvents = true;
+					}
 					control.Location = new Point(5, splitContainer.Panel1.Controls.Count * (27) + 7 + 2);
 					control.Size = new Size(splitContainer.Panel1.ClientSize.Width - 5 - 1, 23);
 					control.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 					control.TitleClicked += titleClicked;
 					control.LaunchClicked += launchClicked;
 					control.StopClicked += stopClicked;
+					control.LaunchWanted += launchWanted;
 					splitContainer.Panel1.Controls.Add(control);
 					NamedProcesses[name] = control;
-					LaunchProcesses.AddLast(name);
+					if (autoLaunch)
+						LaunchProcesses.AddLast(name);
 				}
 				if (!string.IsNullOrEmpty(firstName))
 					titleClicked(NamedProcesses[firstName]);
+			}
+		}
+
+		private void launchWanted(ProcessControl control)
+		{
+			if (closingWindow)
+				return;
+
+			if (control.ProcessName == null)
+			{
+				control.Launch();
+			}
+			else
+			{
+				if (!LaunchProcesses.Contains(control.ProcessName))
+				{
+					LaunchProcesses.AddFirst(control.ProcessName);
+					autoStart();
+				}
 			}
 		}
 
@@ -138,8 +224,8 @@ namespace ServDash
 
 			foreach (ProcessControl control in NamedProcesses.Values)
 			{
-				if ((control.State == ProcessState.Stopped
-					|| control.State == ProcessState.New
+				if ((((control.State == ProcessState.Stopped
+					|| control.State == ProcessState.New) && LaunchProcesses.Contains(control.ProcessName))
 					|| control.State == ProcessState.Launched
 					|| control.State == ProcessState.Captured
 					|| control.State == ProcessState.Stopping)
@@ -159,7 +245,7 @@ namespace ServDash
 					autoStarting = true;
 					try
 					{
-						launchClicked(control);
+						control.Launch();
 						LaunchProcesses.Remove(name);
 					}
 					finally
@@ -242,6 +328,9 @@ namespace ServDash
 
 		private void launchClicked(ProcessControl control)
 		{
+			if (closingWindow)
+				return;
+
 			Control host = (Control)control.ProcessObject;
 			foreach (Control c in splitContainer.Panel2.Controls)
 				if (c != host)
@@ -399,6 +488,9 @@ namespace ServDash
 
 		private void launchAll_Click(object sender, EventArgs e)
 		{
+			if (closingWindow)
+				return;
+
 			if (NamedProcesses.Count > 0)
 			{
 				LaunchProcesses.Clear();

@@ -53,7 +53,7 @@ namespace ServDash
 			// splitContainer.Panel2
 			// 
 			this.splitContainer.Panel2.BackColor = System.Drawing.SystemColors.AppWorkspace;
-			this.splitContainer.Size = new System.Drawing.Size(704, 321);
+			this.splitContainer.Size = new System.Drawing.Size(1064, 501);
 			this.splitContainer.SplitterDistance = 180;
 			this.splitContainer.TabIndex = 0;
 			// 
@@ -91,7 +91,7 @@ namespace ServDash
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(704, 321);
+			this.ClientSize = new System.Drawing.Size(1064, 501);
 			this.Controls.Add(this.splitContainer);
 			this.Name = "MainWindow";
 			this.Text = "Service Dashboard";
