@@ -365,7 +365,7 @@ namespace ServDash
 			foreach (Control c in splitContainer.Panel2.Controls)
 				if (c != host)
 					c.Visible = false;
-			Text = titlePrefix + " - " + control.Title;
+			Text = titlePrefix + " - " + control.ProcessTitle;
 		}
 
 		private void terminalStopped(TerminalHost host)
@@ -457,7 +457,9 @@ namespace ServDash
 		private void processTitleChanged(ProcessHost host, string title)
 		{
 			ProcessControl control = (ProcessControl)host.ProcessObject;
-			control.Title = title;
+			if (!control.StaticTitle)
+				control.Title = title;
+			control.ProcessTitle = title;
 			if (host.Visible)
 				Text = titlePrefix + " - " + title;
 		}

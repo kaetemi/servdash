@@ -39,7 +39,9 @@ namespace ServDash
 
 		bool started = false;
 
-		public string Title { get { return titleButton.Text; } set { titleButton.Text = value; } }
+		public string Title { get { return titleButton.Text; } set { titleButton.Text = value; ProcessTitle = value; } }
+
+		public string ProcessTitle { get; set; }
 
 		public bool StaticTitle { get; set; }
 
