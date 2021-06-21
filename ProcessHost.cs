@@ -169,6 +169,7 @@ namespace ServDash
 					process.Refresh();
 				}
 				*/
+				process.Refresh();
 
 				try
 				{
@@ -186,9 +187,11 @@ namespace ServDash
 					IntPtr.Zero, processObjectNameChangeDelegate, 
 					(uint)process.Id, 0, Win32.WinEventFlags.WINEVENT_OUTOFCONTEXT);
 
-				/*
-				captureMainWindow();
-				*/
+				process.Refresh();
+				if (process.MainWindowHandle != IntPtr.Zero && mainWindowHandle == IntPtr.Zero)
+				{
+					captureMainWindow();
+				}
 
 				if (process.HasExited)
 					processExitedInvoked();
@@ -307,19 +310,13 @@ namespace ServDash
 					if (shutdownRequested)
 					{
 						Win32.PostMessage(hwnd, Win32.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
-						return;
 					}
-					if (hwnd == process.MainWindowHandle)
+					else
 					{
-						captureMainWindow();
-						if (ProcessCaptured != null)
+						process.Refresh();
+						if (hwnd == process.MainWindowHandle)
 						{
-							ProcessCaptured(this);
-						}
-						if (string.IsNullOrEmpty(ReadyPattern) && ProcessReady != null)
-						{
-							readyTriggered = true;
-							ProcessReady(this);
+							captureMainWindow();
 						}
 					}
 				}
@@ -401,6 +398,16 @@ namespace ServDash
 
 			Win32.ShowWindow(mainWindowHandle, Win32.SW_SHOWMAXIMIZED);
 			Win32.SetWindowPos(mainWindowHandle, Handle, 0, 0, ClientSize.Width, ClientSize.Height, Win32.SWP_FRAMECHANGED | Win32.SWP_NOZORDER | Win32.SWP_SHOWWINDOW);
+
+			if (ProcessCaptured != null)
+			{
+				ProcessCaptured(this);
+			}
+			if (string.IsNullOrEmpty(ReadyPattern) && ProcessReady != null)
+			{
+				readyTriggered = true;
+				ProcessReady(this);
+			}
 		}
 
 		private void releaseMainWindow()
