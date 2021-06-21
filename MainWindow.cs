@@ -315,6 +315,10 @@ namespace ServDash
 
 		private void stopClicked(ProcessControl control)
 		{
+			if (control.ProcessName != null && LaunchProcesses.Contains(control.ProcessName))
+			{
+				LaunchProcesses.Remove(control.ProcessName);
+			}
 			Control host = (Control)control.ProcessObject;
 			if (host is ProcessHost)
 			{
