@@ -204,7 +204,8 @@ namespace ServDash
 			}
 			else
 			{
-				if (LaunchCtrlFile != null)
+				if (LaunchCtrlFile != null
+					&& File.ReadAllText(LaunchCtrlFile) != LaunchCtrlValues[2])
 				{
 					File.WriteAllText(LaunchCtrlFile, LaunchCtrlValues[2]);
 				}
